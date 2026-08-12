@@ -14,9 +14,8 @@
         android:theme="@style/Theme.PM5Scanner">
         
         <activity
-            android:name=".MainActivity"
+            android:name="MainActivity"
             android:exported="true"
-            android:label="PM5 Scanner"
             android:theme="@style/Theme.PM5Scanner">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

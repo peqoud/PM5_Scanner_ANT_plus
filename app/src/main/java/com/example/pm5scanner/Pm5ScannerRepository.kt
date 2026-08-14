@@ -15,6 +15,9 @@ class Pm5ScannerRepository(private val context: Context) {
     private val _deviceListFlow = MutableStateFlow<List<Pm5Device>>(emptyList())
     val deviceListFlow = _deviceListFlow.asStateFlow()
 
+    private val _antServicesMissing = MutableStateFlow(false)
+    val antServicesMissing = _antServicesMissing.asStateFlow()
+
     private var scanController: AsyncScanController<AntPlusFitnessEquipmentPcc>? = null
     private val connectedPccs = mutableMapOf<Int, AntPlusFitnessEquipmentPcc>()
 
@@ -28,6 +31,9 @@ class Pm5ScannerRepository(private val context: Context) {
             object : AsyncScanController.IAsyncScanResultReceiver {
                 override fun onSearchStopped(reason: RequestAccessResult) {
                     Log.d("PM5Scanner", "Search stopped: $reason")
+                    if (reason == RequestAccessResult.DEPENDENCY_NOT_INSTALLED) {
+                        _antServicesMissing.value = true
+                    }
                 }
 
                 override fun onSearchResult(deviceInfo: AsyncScanResultDeviceInfo) {

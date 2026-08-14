@@ -34,10 +34,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
                     val devices by viewModel.devices.collectAsStateWithLifecycle()
+                    val antServicesMissing by viewModel.antServicesMissing.collectAsStateWithLifecycle()
 
                     NavHost(navController = navController, startDestination = "scanner") {
                         composable("scanner") {
-                            ScannerScreen(devices = devices) { deviceNumber ->
+                            ScannerScreen(
+                                devices = devices,
+                                antServicesMissing = antServicesMissing
+                            ) { deviceNumber ->
                                 navController.navigate("details/$deviceNumber")
                             }
                         }

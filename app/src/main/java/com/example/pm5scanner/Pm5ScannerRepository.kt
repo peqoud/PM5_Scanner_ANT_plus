@@ -3,7 +3,6 @@ package com.example.pm5scanner
 import android.content.Context
 import android.util.Log
 import com.dsi.ant.plugins.antplus.pcc.AntPlusFitnessEquipmentPcc
-import com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
 import com.dsi.ant.plugins.antplus.pcc.defines.RequestAccessResult
 import com.dsi.ant.plugins.antplus.pccbase.AsyncScanController
 import com.dsi.ant.plugins.antplus.pccbase.AsyncScanController.AsyncScanResultDeviceInfo
@@ -23,9 +22,9 @@ class Pm5ScannerRepository(private val context: Context) {
         if (scanController != null) return
 
         Log.d("PM5Scanner", "Starting ANT+ scan...")
-        scanController = AntPlusFitnessEquipmentPcc.requestAsyncScanController(
+        scanController = AntPlusFitnessEquipmentPcc.requestNewOpenAccess(
             context,
-            0, // Search all devices
+            0,
             object : AsyncScanController.IAsyncScanResultReceiver {
                 override fun onSearchStopped(reason: RequestAccessResult) {
                     Log.d("PM5Scanner", "Search stopped: $reason")
@@ -42,8 +41,17 @@ class Pm5ScannerRepository(private val context: Context) {
                         )
                     }
 
-                    // Request access to connect and get real-time data
                     connectToDevice(deviceInfo)
+                }
+            },
+            object : AntPlusFitnessEquipmentPcc.IFitnessEquipmentStateReceiver {
+                override fun onNewFitnessEquipmentState(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
+                    equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
+                ) {
+                    Log.d("PM5Scanner", "State received: $equipmentType, $equipmentState")
                 }
             }
         )
@@ -52,45 +60,112 @@ class Pm5ScannerRepository(private val context: Context) {
     private fun connectToDevice(deviceInfo: AsyncScanResultDeviceInfo) {
         if (connectedPccs.containsKey(deviceInfo.antDeviceNumber)) return
 
-        AntPlusFitnessEquipmentPcc.requestAccess(
+        AntPlusFitnessEquipmentPcc.requestNewOpenAccess(
             context,
             deviceInfo.antDeviceNumber,
             0,
-            { pcc, resultCode, initialDeviceState ->
-                if (resultCode == RequestAccessResult.SUCCESS) {
-                    connectedPccs[deviceInfo.antDeviceNumber] = pcc
-                    subscribeToDeviceEvents(pcc, deviceInfo.antDeviceNumber)
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPluginPcc.IPluginAccessResultReceiver<AntPlusFitnessEquipmentPcc> {
+                override fun onResultReceived(
+                    result: AntPlusFitnessEquipmentPcc?,
+                    resultCode: RequestAccessResult,
+                    initialDeviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
+                ) {
+                    if (resultCode == RequestAccessResult.SUCCESS && result != null) {
+                        connectedPccs[deviceInfo.antDeviceNumber] = result
+                        subscribeToDeviceEvents(result, deviceInfo.antDeviceNumber)
+                    }
                 }
             },
-            { deviceState ->
-                updateDevice(deviceInfo.antDeviceNumber) {
-                    it.copy(status = deviceState.toString())
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPluginPcc.IDeviceStateChangeReceiver {
+                override fun onDeviceStateChange(deviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState) {
+                    updateDevice(deviceInfo.antDeviceNumber) {
+                        it.copy(status = deviceState.toString())
+                    }
+                }
+            },
+            object : AntPlusFitnessEquipmentPcc.IFitnessEquipmentStateReceiver {
+                override fun onNewFitnessEquipmentState(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
+                    equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
+                ) {
+                    Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
                 }
             }
         )
     }
 
     private fun subscribeToDeviceEvents(pcc: AntPlusFitnessEquipmentPcc, deviceNumber: Int) {
-        pcc.subscribeGeneralFitnessEquipmentDataEvent { _, _, _, _, _, _, _, totalDistance, _, _, _ ->
-            updateDevice(deviceNumber) {
-                it.copy(totalDistance = totalDistance)
+        pcc.subscribeGeneralFitnessEquipmentDataEvent(
+            object : AntPlusFitnessEquipmentPcc.IGeneralFitnessEquipmentDataReceiver {
+                override fun onNewGeneralFitnessEquipmentData(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    cumulativeDistance: java.math.BigDecimal,
+                    instantaneousSpeed: Long,
+                    instantaneousPower: java.math.BigDecimal,
+                    expHrt: Boolean,
+                    instantaneousHeartRate: Int,
+                    heartRateDataSource: AntPlusFitnessEquipmentPcc.HeartRateDataSource
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(totalDistance = cumulativeDistance.toLong())
+                    }
+                }
             }
-        }
+        )
 
-        pcc.subscribeCommonDataPage82BatteryStatusEvent { _, _, _, _, _, _, _, batteryVoltage, batteryStatus, _, _, _ ->
-            updateDevice(deviceNumber) {
-                // Simplified battery percentage based on voltage or status if needed.
-                // Assuming status or voltage logic can be mapped here. 
-                // For now, we'll just store a representation.
-                it.copy(batteryLevel = (batteryVoltage.toInt() * 10)) // placeholder logic
+        pcc.subscribeBatteryStatusEvent(
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPlusCommonPcc.IBatteryStatusReceiver {
+                override fun onNewBatteryStatus(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    cumulativeOperatingTime: Long,
+                    batteryVoltage: java.math.BigDecimal,
+                    batteryStatus: com.dsi.ant.plugins.antplus.pcc.defines.BatteryStatus,
+                    cumulativeOperatingTimeRes: Int,
+                    batteryIdentifier: Int,
+                    numberOfBatteries: Int
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(batteryLevel = batteryVoltage.toInt() * 10)
+                    }
+                }
             }
-        }
+        )
 
-        pcc.subscribeManufacturerAndSerialEvent { _, _, _, _, serialNumber ->
-            updateDevice(deviceNumber) {
-                it.copy(serialNumber = serialNumber.toString())
+        pcc.subscribeProductInformationEvent(
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPlusCommonPcc.IProductInformationReceiver {
+                override fun onNewProductInformation(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    hardwareVersion: Int,
+                    softwareVersion: Int,
+                    serialNumber: Long
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(serialNumber = serialNumber.toString())
+                    }
+                }
             }
-        }
+        )
+
+        pcc.subscribeManufacturerIdentificationEvent(
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPlusCommonPcc.IManufacturerIdentificationReceiver {
+                override fun onNewManufacturerIdentification(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    hardwareRevision: Int,
+                    manufacturerID: Int,
+                    modelNumber: Int
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(modelNumber = modelNumber.toString())
+                    }
+                }
+            }
+        )
     }
 
     private fun updateDevice(deviceNumber: Int, updateBlock: (Pm5Device) -> Pm5Device) {

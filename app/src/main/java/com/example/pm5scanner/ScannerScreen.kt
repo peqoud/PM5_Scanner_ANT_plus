@@ -20,7 +20,7 @@ fun ScannerScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text(if (antServicesMissing) "ANT+ Services Missing" else "Searching for PM5...") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (antServicesMissing) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,

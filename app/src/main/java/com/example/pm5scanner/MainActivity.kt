@@ -40,10 +40,27 @@ class MainActivity : ComponentActivity() {
                         composable("scanner") {
                             ScannerScreen(
                                 devices = devices,
-                                antServicesMissing = antServicesMissing
-                            ) { deviceNumber ->
-                                navController.navigate("details/$deviceNumber")
-                            }
+                                antServicesMissing = antServicesMissing,
+                                onNavigateToDetails = { deviceNumber ->
+                                    if (deviceNumber != null) {
+                                        navController.navigate("details/$deviceNumber") {
+                                            launchSingleTop = true
+                                        }
+                                    } else {
+                                        navController.navigate("details_empty") {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                },
+                                onNavigateToAbout = {
+                                    navController.navigate("about") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onDeviceClick = { deviceNumber ->
+                                    navController.navigate("details/$deviceNumber")
+                                }
+                            )
                         }
                         composable(
                             "details/{deviceNumber}",
@@ -51,13 +68,47 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val deviceNumber = backStackEntry.arguments?.getInt("deviceNumber")
                             val device = devices.find { it.deviceNumber == deviceNumber }
-                            if (device != null) {
-                                DeviceDetailScreen(device = device) {
+                            DeviceDetailScreen(
+                                device = device,
+                                onNavigateToScanner = {
+                                    navController.navigate("scanner") {
+                                        popUpTo("scanner") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAbout = {
+                                    navController.navigate("about") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onNavigateBack = {
                                     navController.popBackStack()
                                 }
-                            } else {
-                                Text("Device not found")
-                            }
+                            )
+                        }
+                        composable("details_empty") {
+                            DeviceDetailScreen(
+                                device = null,
+                                onNavigateToScanner = {
+                                    navController.navigate("scanner") {
+                                        popUpTo("scanner") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAbout = {
+                                    navController.navigate("about") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                        composable("about") {
+                            AboutScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
                     }
                 }

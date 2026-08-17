@@ -179,16 +179,29 @@ fun DeviceListItem(device: ANT_Device, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = "Serial: ${device.serialNumber}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                text = device.serialNumber,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Status: ${device.status}")
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Distance: ${device.totalDistance} m")
+            Text(
+                text = device.status,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "${device.totalDistance} m",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.wrapContentWidth(Alignment.End)
+            )
         }
     }
 }

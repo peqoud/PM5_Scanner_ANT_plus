@@ -5,9 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.StateFlow
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = Pm5ScannerRepository(application.applicationContext)
+    private val repository = ANTScannerRepository(application.applicationContext)
 
-    val devices: StateFlow<List<Pm5Device>> = repository.deviceListFlow
+    val devices: StateFlow<List<ANT_Device>> = repository.deviceListFlow
     val antServicesMissing: StateFlow<Boolean> = repository.antServicesMissing
 
     init {

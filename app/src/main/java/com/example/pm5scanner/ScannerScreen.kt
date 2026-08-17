@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(
-    devices: List<Pm5Device>,
+    devices: List<ANT_Device>,
     antServicesMissing: Boolean,
     onNavigateToDetails: (Int?) -> Unit,
     onNavigateToAbout: () -> Unit,
@@ -33,7 +33,7 @@ fun ScannerScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(if (antServicesMissing) "ANT+ Services Missing" else "PM5 Scanner") },
+                title = { Text(if (antServicesMissing) "ANT+ Services Missing" else "ANT+ Scanner") },
                 navigationIcon = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
@@ -121,7 +121,7 @@ fun ScannerScreen(
                         color = MaterialTheme.colorScheme.error
                     )
                     Text(
-                        text = "Please install ANT Radio Service, ANT+ Plugins Service, and ANT USB Service from the Play Store to scan for PM5 rowers.",
+                        text = "Please install ANT Radio Service, ANT+ Plugins Service, and ANT USB Service from the Play Store to scan for ANT+ rowers.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -140,7 +140,7 @@ fun ScannerScreen(
                 ) {
                     CircularProgressIndicator()
                     Text(
-                        text = "Searching for PM5 devices...",
+                        text = "Searching for ANT+ devices...",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -172,7 +172,7 @@ fun ScannerScreen(
 }
 
 @Composable
-fun DeviceListItem(device: Pm5Device, onClick: () -> Unit) {
+fun DeviceListItem(device: ANT_Device, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

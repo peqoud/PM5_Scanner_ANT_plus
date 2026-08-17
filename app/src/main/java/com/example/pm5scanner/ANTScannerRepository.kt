@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class Pm5ScannerRepository(private val context: Context) {
-    private val _devices = MutableStateFlow<Map<Int, Pm5Device>>(emptyMap())
-    private val _deviceListFlow = MutableStateFlow<List<Pm5Device>>(emptyList())
+class ANTScannerRepository(private val context: Context) {
+    private val _devices = MutableStateFlow<Map<Int, ANT_Device>>(emptyMap())
+    private val _deviceListFlow = MutableStateFlow<List<ANT_Device>>(emptyList())
     val deviceListFlow = _deviceListFlow.asStateFlow()
 
     private val _antServicesMissing = MutableStateFlow(false)
@@ -290,9 +290,9 @@ class Pm5ScannerRepository(private val context: Context) {
         )
     }
 
-    private fun updateDevice(deviceNumber: Int, updateBlock: (Pm5Device) -> Pm5Device) {
+    private fun updateDevice(deviceNumber: Int, updateBlock: (ANT_Device) -> ANT_Device) {
         _devices.update { currentMap ->
-            val existingDevice = currentMap[deviceNumber] ?: Pm5Device(deviceNumber = deviceNumber)
+            val existingDevice = currentMap[deviceNumber] ?: ANT_Device(deviceNumber = deviceNumber)
             val updatedDevice = updateBlock(existingDevice)
             val newMap = currentMap + (deviceNumber to updatedDevice)
             _deviceListFlow.value = newMap.values.toList()

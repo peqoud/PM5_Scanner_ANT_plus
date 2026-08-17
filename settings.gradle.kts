@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PM5Scanner"
+rootProject.name = "ANT+_Scanner"
 include(":app")

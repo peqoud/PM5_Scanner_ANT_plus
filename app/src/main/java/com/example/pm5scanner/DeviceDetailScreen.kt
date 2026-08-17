@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceDetailScreen(
-    device: Pm5Device?,
+    device: ANT_Device?,
     onNavigateToScanner: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onNavigateBack: () -> Unit

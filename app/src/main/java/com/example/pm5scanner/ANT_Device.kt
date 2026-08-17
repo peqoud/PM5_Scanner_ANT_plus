@@ -1,6 +1,6 @@
 package com.example.pm5scanner
 
-data class Pm5Device(
+data class ANT_Device(
     val deviceNumber: Int,
     val serialNumber: String = "Unknown",
     val batteryLevel: Int = -1,

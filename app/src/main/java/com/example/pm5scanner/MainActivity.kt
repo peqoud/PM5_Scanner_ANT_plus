@@ -62,6 +62,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onResetConnection = { deviceNumber ->
                                     viewModel.resetDeviceConnection(deviceNumber)
+                                },
+                                onRefreshList = {
+                                    viewModel.clearDeadDevices()
                                 }
                             )
                         }

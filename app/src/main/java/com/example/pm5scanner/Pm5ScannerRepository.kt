@@ -300,6 +300,22 @@ class Pm5ScannerRepository(private val context: Context) {
         }
     }
 
+    fun clearDeadDevices() {
+        _devices.update { currentMap ->
+            val deadDeviceNumbers = currentMap.values
+                .filter { it.status.equals("DEAD", ignoreCase = true) }
+                .map { it.deviceNumber }
+            
+            deadDeviceNumbers.forEach { devNum ->
+                connectedPccs.remove(devNum)?.releaseAccess()
+            }
+
+            val newMap = currentMap.filterKeys { it !in deadDeviceNumbers }
+            _deviceListFlow.value = newMap.values.toList()
+            newMap
+        }
+    }
+
     fun stopScanning() {
         scanController?.closeScanController()
         scanController = null

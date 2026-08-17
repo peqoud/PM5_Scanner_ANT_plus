@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -24,7 +25,8 @@ fun ScannerScreen(
     onNavigateToDetails: (Int?) -> Unit,
     onNavigateToAbout: () -> Unit,
     onDeviceClick: (Int) -> Unit,
-    onResetConnection: (Int) -> Unit = {}
+    onResetConnection: (Int) -> Unit = {},
+    onRefreshList: () -> Unit = {}
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -83,6 +85,14 @@ fun ScannerScreen(
                                 }
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onRefreshList) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Clear & Refresh"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

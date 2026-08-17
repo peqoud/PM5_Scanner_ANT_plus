@@ -16,6 +16,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetDeviceConnection(deviceNumber: Int) {
         repository.resetDeviceConnection(deviceNumber)
+     }
+
+    fun clearDeadDevices() {
+        repository.clearDeadDevices()
     }
 
     override fun onCleared() {

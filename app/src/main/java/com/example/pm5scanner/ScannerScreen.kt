@@ -23,7 +23,8 @@ fun ScannerScreen(
     antServicesMissing: Boolean,
     onNavigateToDetails: (Int?) -> Unit,
     onNavigateToAbout: () -> Unit,
-    onDeviceClick: (Int) -> Unit
+    onDeviceClick: (Int) -> Unit,
+    onResetConnection: (Int) -> Unit = {}
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -144,7 +145,16 @@ fun ScannerScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(devices) { device ->
-                    DeviceListItem(device = device, onClick = { onDeviceClick(device.deviceNumber) })
+                    DeviceListItem(
+                        device = device,
+                        onClick = {
+                            if (device.status.equals("DEAD", ignoreCase = true)) {
+                                onResetConnection(device.deviceNumber)
+                            } else {
+                                onDeviceClick(device.deviceNumber)
+                            }
+                        }
+                    )
                 }
             }
         }

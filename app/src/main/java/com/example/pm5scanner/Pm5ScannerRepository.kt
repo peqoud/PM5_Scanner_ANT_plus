@@ -174,6 +174,54 @@ class Pm5ScannerRepository(private val context: Context) {
         )
     }
 
+    fun resetDeviceConnection(deviceNumber: Int) {
+        Log.d("PM5Scanner", "Resetting connection for device: $deviceNumber")
+        connectedPccs.remove(deviceNumber)?.releaseAccess()
+
+        updateDevice(deviceNumber) {
+            it.copy(status = "Connecting...")
+        }
+
+        AntPlusFitnessEquipmentPcc.requestNewOpenAccess(
+            context,
+            deviceNumber,
+            0,
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPluginPcc.IPluginAccessResultReceiver<AntPlusFitnessEquipmentPcc> {
+                override fun onResultReceived(
+                    result: AntPlusFitnessEquipmentPcc?,
+                    resultCode: RequestAccessResult,
+                    initialDeviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
+                ) {
+                    if (resultCode == RequestAccessResult.SUCCESS && result != null) {
+                        connectedPccs[deviceNumber] = result
+                        subscribeToDeviceEvents(result, deviceNumber)
+                    } else {
+                        updateDevice(deviceNumber) {
+                            it.copy(status = resultCode.toString())
+                        }
+                    }
+                }
+            },
+            object : com.dsi.ant.plugins.antplus.pccbase.AntPluginPcc.IDeviceStateChangeReceiver {
+                override fun onDeviceStateChange(deviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState) {
+                    updateDevice(deviceNumber) {
+                        it.copy(status = deviceState.toString())
+                    }
+                }
+            },
+            object : AntPlusFitnessEquipmentPcc.IFitnessEquipmentStateReceiver {
+                override fun onNewFitnessEquipmentState(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
+                    equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
+                ) {
+                    Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
+                }
+            }
+        )
+    }
+
     private fun updateDevice(deviceNumber: Int, updateBlock: (Pm5Device) -> Pm5Device) {
         _devices.update { currentMap ->
             val existingDevice = currentMap[deviceNumber] ?: Pm5Device(deviceNumber = deviceNumber)

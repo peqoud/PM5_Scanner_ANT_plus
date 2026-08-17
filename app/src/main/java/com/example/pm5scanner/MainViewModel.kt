@@ -14,6 +14,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         repository.startScanning()
     }
 
+    fun resetDeviceConnection(deviceNumber: Int) {
+        repository.resetDeviceConnection(deviceNumber)
+    }
+
     override fun onCleared() {
         super.onCleared()
         repository.stopScanning()

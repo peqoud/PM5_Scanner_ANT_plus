@@ -59,6 +59,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDeviceClick = { deviceNumber ->
                                     navController.navigate("details/$deviceNumber")
+                                },
+                                onResetConnection = { deviceNumber ->
+                                    viewModel.resetDeviceConnection(deviceNumber)
                                 }
                             )
                         }

@@ -26,7 +26,7 @@ fun DeviceDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("PM5 Details") },
+                 title = { Text("ANT+ Details") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

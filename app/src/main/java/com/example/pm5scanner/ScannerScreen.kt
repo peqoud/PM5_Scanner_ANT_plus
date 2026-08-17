@@ -176,13 +176,7 @@ fun DeviceListItem(device: Pm5Device, onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Status: ${device.status}")
-                Text(text = "Battery: ${if (device.batteryLevel >= 0) "${device.batteryLevel}%" else "N/A"}")
-            }
+            Text(text = "Status: ${device.status}")
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "Distance: ${device.totalDistance} m")
         }

@@ -116,8 +116,16 @@ fun DeviceDetailScreen(
                 DetailRow(label = "Device Number (ANT ID)", value = device.deviceNumber.toString())
                 DetailRow(label = "Serial Number", value = device.serialNumber)
                 DetailRow(label = "Status", value = device.status)
+                DetailRow(label = "Device Type", value = device.deviceType)
+                DetailRow(label = "FE State", value = device.feState)
                 DetailRow(label = "Battery Level", value = if (device.batteryLevel >= 0) "${device.batteryLevel}%" else "Unknown")
                 DetailRow(label = "Total Distance", value = "${device.totalDistance} m")
+                DetailRow(label = "Speed", value = device.speed)
+                DetailRow(label = "Resistance Level", value = if (device.resistanceLevel >= 0) device.resistanceLevel.toString() else "N/A")
+                DetailRow(label = "Calories", value = "${device.calories} kcal")
+                DetailRow(label = "Rower Strokes", value = device.rowerStrokes.toString())
+                DetailRow(label = "Rower Cadence", value = "${device.rowerCadence} spm")
+                DetailRow(label = "Rower Power", value = "${device.rowerPower} W")
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 

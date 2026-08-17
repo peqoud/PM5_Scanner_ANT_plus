@@ -9,5 +9,13 @@ data class Pm5Device(
     val capabilities: String = "",
     val hardwareVersion: String = "",
     val softwareVersion: String = "",
-    val modelNumber: String = ""
+    val modelNumber: String = "",
+    val deviceType: String = "Unknown",
+    val feState: String = "Unknown",
+    val speed: String = "0.0 m/s",
+    val resistanceLevel: Int = -1,
+    val calories: Long = 0,
+    val rowerStrokes: Long = 0,
+    val rowerCadence: Int = 0,
+    val rowerPower: Int = 0
 )

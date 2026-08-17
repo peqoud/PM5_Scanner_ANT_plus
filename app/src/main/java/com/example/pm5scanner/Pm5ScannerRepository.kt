@@ -97,6 +97,12 @@ class Pm5ScannerRepository(private val context: Context) {
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
                     Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    updateDevice(deviceInfo.antDeviceNumber) {
+                        it.copy(
+                            deviceType = equipmentType.toString(),
+                            feState = equipmentState.toString()
+                        )
+                    }
                 }
             }
         )
@@ -115,8 +121,64 @@ class Pm5ScannerRepository(private val context: Context) {
                     instantaneousHeartRate: Int,
                     heartRateDataSource: AntPlusFitnessEquipmentPcc.HeartRateDataSource
                 ) {
+                    val speedDisplay = if (instantaneousSpeed >= 0) "${instantaneousSpeed / 1000.0} m/s" else "0.0 m/s"
                     updateDevice(deviceNumber) {
-                        it.copy(totalDistance = cumulativeDistance.toLong())
+                        it.copy(
+                            totalDistance = cumulativeDistance.toLong(),
+                            speed = speedDisplay
+                        )
+                    }
+                }
+            }
+        )
+
+        pcc.subscribeGeneralSettingsEvent(
+            object : AntPlusFitnessEquipmentPcc.IGeneralSettingsReceiver {
+                override fun onNewGeneralSettings(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    cycleLength: java.math.BigDecimal,
+                    inclinePercentage: java.math.BigDecimal,
+                    resistanceLevel: Int
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(resistanceLevel = resistanceLevel)
+                    }
+                }
+            }
+        )
+
+        pcc.subscribeGeneralMetabolicDataEvent(
+            object : AntPlusFitnessEquipmentPcc.IGeneralMetabolicDataReceiver {
+                override fun onNewGeneralMetabolicData(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    instantaneousMetabolicEquivalents: java.math.BigDecimal,
+                    instantaneousCaloricBurn: java.math.BigDecimal,
+                    cumulativeCalories: Long
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(calories = cumulativeCalories)
+                    }
+                }
+            }
+        )
+
+        pcc.rowerMethods?.subscribeRowerDataEvent(
+            object : AntPlusFitnessEquipmentPcc.IRowerDataReceiver {
+                override fun onNewRowerData(
+                    estTimestamp: Long,
+                    eventFlags: java.util.EnumSet<com.dsi.ant.plugins.antplus.pcc.defines.EventFlag>,
+                    cumulativeStrokes: Long,
+                    instantaneousCadence: Int,
+                    instantaneousPower: Int
+                ) {
+                    updateDevice(deviceNumber) {
+                        it.copy(
+                            rowerStrokes = cumulativeStrokes,
+                            rowerCadence = instantaneousCadence,
+                            rowerPower = instantaneousPower
+                        )
                     }
                 }
             }
@@ -217,6 +279,12 @@ class Pm5ScannerRepository(private val context: Context) {
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
                     Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    updateDevice(deviceNumber) {
+                        it.copy(
+                            deviceType = equipmentType.toString(),
+                            feState = equipmentState.toString()
+                        )
+                    }
                 }
             }
         )

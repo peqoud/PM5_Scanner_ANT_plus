@@ -29,6 +29,24 @@ fun ScannerScreen(
     onRefreshList: () -> Unit = {}
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+    var sortByDistanceAsc by remember { mutableStateOf<Boolean?>(null) }
+    var groupByDeviceType by remember { mutableStateOf(false) }
+
+    val processedDevices = remember(devices, sortByDistanceAsc) {
+        when (sortByDistanceAsc) {
+            true -> devices.sortedBy { it.totalDistance }
+            false -> devices.sortedByDescending { it.totalDistance }
+            null -> devices
+        }
+    }
+
+    val groupedDevices = remember(processedDevices, groupByDeviceType) {
+        if (groupByDeviceType) {
+            processedDevices.groupBy { it.deviceType }
+        } else {
+            mapOf("" to processedDevices)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -147,24 +165,85 @@ fun ScannerScreen(
                 }
             }
         } else {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(padding)
             ) {
-                items(devices) { device ->
-                    DeviceListItem(
-                        device = device,
+                // Controls Row for sorting by distance and grouping by deviceType
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = sortByDistanceAsc != null,
                         onClick = {
-                            if (device.status.equals("DEAD", ignoreCase = true)) {
-                                onResetConnection(device.deviceNumber)
-                            } else {
-                                onDeviceClick(device.deviceNumber)
+                            sortByDistanceAsc = when (sortByDistanceAsc) {
+                                null -> false // default sort descending (highest distance first)
+                                false -> true  // ascending (lowest distance first)
+                                true -> null  // disable sorting
                             }
+                        },
+                        label = {
+                            Text(
+                                when (sortByDistanceAsc) {
+                                    true -> "Distance (Asc \u2191)"
+                                    false -> "Distance (Desc \u2193)"
+                                    null -> "Sort Distance"
+                                }
+                            )
                         }
                     )
+
+                    FilterChip(
+                        selected = groupByDeviceType,
+                        onClick = { groupByDeviceType = !groupByDeviceType },
+                        label = { Text("Group by Type") }
+                    )
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    groupedDevices.forEach { (type, deviceList) ->
+                        if (groupByDeviceType) {
+                            item(key = "header_$type") {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = MaterialTheme.shapes.small,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp, bottom = 4.dp)
+                                ) {
+                                    Text(
+                                        text = type.ifBlank { "Unknown Type" },
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        items(deviceList, key = { it.deviceNumber }) { device ->
+                            DeviceListItem(
+                                device = device,
+                                onClick = {
+                                    if (device.status.equals("DEAD", ignoreCase = true)) {
+                                        onResetConnection(device.deviceNumber)
+                                    } else {
+                                        onDeviceClick(device.deviceNumber)
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

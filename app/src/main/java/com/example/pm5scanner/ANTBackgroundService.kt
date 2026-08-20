@@ -28,7 +28,7 @@ class ANTBackgroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        repository = ANTScannerRepository(applicationContext)
+         repository = ANTScannerRepository(this)
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PM5Scanner::ANTWakeLock").apply {

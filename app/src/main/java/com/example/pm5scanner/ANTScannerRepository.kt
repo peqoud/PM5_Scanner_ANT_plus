@@ -24,13 +24,13 @@ class ANTScannerRepository(private val context: Context) {
     fun startScanning() {
         if (scanController != null) return
 
-        Log.d("PM5Scanner", "Starting ANT+ scan...")
+        Log.d("ANTScanner", "Starting ANT+ scan...")
         scanController = AntPlusFitnessEquipmentPcc.requestNewOpenAccess(
             context,
             0,
             object : AsyncScanController.IAsyncScanResultReceiver {
                 override fun onSearchStopped(reason: RequestAccessResult) {
-                    Log.d("PM5Scanner", "Search stopped: $reason")
+                    Log.d("ANTScanner", "Search stopped: $reason")
                     if (reason == RequestAccessResult.DEPENDENCY_NOT_INSTALLED) {
                         _antServicesMissing.value = true
                     }
@@ -38,15 +38,17 @@ class ANTScannerRepository(private val context: Context) {
 
                 override fun onSearchResult(deviceInfo: AsyncScanResultDeviceInfo) {
                     val deviceNumber = deviceInfo.antDeviceNumber
-                    Log.d("PM5Scanner", "Found device: $deviceNumber")
-                    
+                    Log.d("ANTScanner", "Found device: $deviceNumber")
+                    var serialNumber = deviceInfo.deviceDisplayName ?: "Unknown"
                     updateDevice(deviceNumber) {
                         it.copy(
-                            serialNumber = deviceInfo.deviceDisplayName ?: "Unknown",
+                            serialNumber = serialNumber,
                             status = "Discovered"
+                            
                         )
-                    }
 
+                    }
+                    Log.d("ANTScanner", "Device $serialNumber Discovered")
                     connectToDevice(deviceInfo)
                 }
             },
@@ -57,7 +59,7 @@ class ANTScannerRepository(private val context: Context) {
                     equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
-                    Log.d("PM5Scanner", "State received: $equipmentType, $equipmentState")
+                    Log.d("ANTScanner", "State received: $equipmentType, $equipmentState")
                 }
             }
         )
@@ -76,9 +78,17 @@ class ANTScannerRepository(private val context: Context) {
                     resultCode: RequestAccessResult,
                     initialDeviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
                 ) {
+                    Log.d("ANTScanner", "requestNewOpenAccess result for ${deviceInfo.antDeviceNumber}: $resultCode, state: $initialDeviceState")
                     if (resultCode == RequestAccessResult.SUCCESS && result != null) {
                         connectedPccs[deviceInfo.antDeviceNumber] = result
+                        updateDevice(deviceInfo.antDeviceNumber) {
+                            it.copy(status = initialDeviceState.toString())
+                        }
                         subscribeToDeviceEvents(result, deviceInfo.antDeviceNumber)
+                    } else {
+                        updateDevice(deviceInfo.antDeviceNumber) {
+                            it.copy(status = resultCode.toString())
+                        }
                     }
                 }
             },
@@ -87,6 +97,7 @@ class ANTScannerRepository(private val context: Context) {
                     updateDevice(deviceInfo.antDeviceNumber) {
                         it.copy(status = deviceState.toString())
                     }
+                    Log.d("ANTScanner", "New Device $deviceInfo.antDeviceNumber state: $deviceState")
                 }
             },
             object : AntPlusFitnessEquipmentPcc.IFitnessEquipmentStateReceiver {
@@ -96,7 +107,7 @@ class ANTScannerRepository(private val context: Context) {
                     equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
-                    Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    Log.d("ANTScanner", "Device internal state: $equipmentState, type: $equipmentType")
                     updateDevice(deviceInfo.antDeviceNumber) {
                         it.copy(
                             deviceType = equipmentType.toString(),
@@ -237,7 +248,7 @@ class ANTScannerRepository(private val context: Context) {
     }
 
     fun resetDeviceConnection(deviceNumber: Int) {
-        Log.d("PM5Scanner", "Resetting connection for device: $deviceNumber")
+        Log.d("ANTScanner", "Resetting connection for device: $deviceNumber")
         connectedPccs.remove(deviceNumber)?.releaseAccess()
 
         updateDevice(deviceNumber) {
@@ -254,8 +265,12 @@ class ANTScannerRepository(private val context: Context) {
                     resultCode: RequestAccessResult,
                     initialDeviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
                 ) {
+                    Log.d("ANTScanner", "Reset requestNewOpenAccess result for $deviceNumber: $resultCode, state: $initialDeviceState")
                     if (resultCode == RequestAccessResult.SUCCESS && result != null) {
                         connectedPccs[deviceNumber] = result
+                        updateDevice(deviceNumber) {
+                            it.copy(status = initialDeviceState.toString())
+                        }
                         subscribeToDeviceEvents(result, deviceNumber)
                     } else {
                         updateDevice(deviceNumber) {
@@ -278,7 +293,7 @@ class ANTScannerRepository(private val context: Context) {
                     equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
-                    Log.d("PM5Scanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    Log.d("ANTScanner", "Device internal state: $equipmentState, type: $equipmentType")
                     updateDevice(deviceNumber) {
                         it.copy(
                             deviceType = equipmentType.toString(),

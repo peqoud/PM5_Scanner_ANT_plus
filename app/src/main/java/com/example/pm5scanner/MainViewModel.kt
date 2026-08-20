@@ -66,6 +66,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         serviceRepository.value?.clearDeadDevices()
     }
 
+    fun stopServiceAndExit() {
+        val app = getApplication<Application>()
+        try {
+            app.unbindService(serviceConnection)
+        } catch (_: Exception) {
+        }
+        val stopIntent = Intent(app, ANTBackgroundService::class.java).apply {
+            action = ANTBackgroundService.ACTION_STOP_SERVICE
+        }
+        app.startService(stopIntent)
+    }
+
     override fun onCleared() {
         super.onCleared()
         try {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
@@ -26,7 +27,8 @@ fun ScannerScreen(
     onNavigateToAbout: () -> Unit,
     onDeviceClick: (Int) -> Unit,
     onResetConnection: (Int) -> Unit = {},
-    onRefreshList: () -> Unit = {}
+    onRefreshList: () -> Unit = {},
+    onStopServiceAndExit: () -> Unit = {}
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var sortByDistanceAsc by remember { mutableStateOf<Boolean?>(null) }
@@ -100,6 +102,21 @@ fun ScannerScreen(
                                 onClick = {
                                     menuExpanded = false
                                     onNavigateToAbout()
+                                }
+                            )
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text("Stop & Exit App") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onStopServiceAndExit()
                                 }
                             )
                         }
@@ -234,6 +251,7 @@ fun ScannerScreen(
                         items(deviceList, key = { it.deviceNumber }) { device ->
                             DeviceListItem(
                                 device = device,
+                                showDeviceType = !groupByDeviceType,
                                 onClick = {
                                     if (device.status.equals("DEAD", ignoreCase = true)) {
                                         onResetConnection(device.deviceNumber)
@@ -251,7 +269,11 @@ fun ScannerScreen(
 }
 
 @Composable
-fun DeviceListItem(device: ANT_Device, onClick: () -> Unit) {
+fun DeviceListItem(
+    device: ANT_Device,
+    showDeviceType: Boolean = false,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,11 +298,23 @@ fun DeviceListItem(device: ANT_Device, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
-            Text(
-                text = "${device.totalDistance} m",
-                style = MaterialTheme.typography.bodyMedium,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.wrapContentWidth(Alignment.End)
-            )
+            ) {
+                Text(
+                    text = "${device.totalDistance} m",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (showDeviceType && device.deviceType.isNotBlank()) {
+                    Text(
+                        text = device.deviceType,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
         }
     }
 }

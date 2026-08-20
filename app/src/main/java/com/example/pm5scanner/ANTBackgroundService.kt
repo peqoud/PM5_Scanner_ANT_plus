@@ -82,6 +82,11 @@ class ANTBackgroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP_SERVICE) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
@@ -100,6 +105,7 @@ class ANTBackgroundService : Service() {
     }
 
     companion object {
+        const val ACTION_STOP_SERVICE = "com.example.pm5scanner.ACTION_STOP_SERVICE"
         private const val NOTIFICATION_ID = 1001
     }
 }

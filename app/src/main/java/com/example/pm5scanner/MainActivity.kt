@@ -87,6 +87,10 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onRefreshList = {
                                     viewModel.clearDeadDevices()
+                                },
+                                onStopServiceAndExit = {
+                                    viewModel.stopServiceAndExit()
+                                    finishAndRemoveTask()
                                 }
                             )
                         }

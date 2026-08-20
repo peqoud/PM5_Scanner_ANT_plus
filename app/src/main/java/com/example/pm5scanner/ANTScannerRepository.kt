@@ -97,7 +97,8 @@ class ANTScannerRepository(private val context: Context) {
                     updateDevice(deviceInfo.antDeviceNumber) {
                         it.copy(status = deviceState.toString())
                     }
-                    Log.d("ANTScanner", "New Device $deviceInfo.antDeviceNumber state: $deviceState")
+                    val devicenumber = deviceInfo.antDeviceNumber
+                    Log.d("ANTScanner", "New Device $devicenumber state: $deviceState")
                 }
             },
             object : AntPlusFitnessEquipmentPcc.IFitnessEquipmentStateReceiver {
@@ -107,7 +108,8 @@ class ANTScannerRepository(private val context: Context) {
                     equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
-                    Log.d("ANTScanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    val devicenumber = deviceInfo.antDeviceNumber
+                    Log.d("ANTScanner", "Device $devicenumber internal state: $equipmentState, type: $equipmentType")
                     updateDevice(deviceInfo.antDeviceNumber) {
                         it.copy(
                             deviceType = equipmentType.toString(),
@@ -293,7 +295,7 @@ class ANTScannerRepository(private val context: Context) {
                     equipmentType: AntPlusFitnessEquipmentPcc.EquipmentType,
                     equipmentState: AntPlusFitnessEquipmentPcc.EquipmentState
                 ) {
-                    Log.d("ANTScanner", "Device internal state: $equipmentState, type: $equipmentType")
+                    Log.d("ANTScanner", "Device  $deviceNumber  internal state: $equipmentState, type: $equipmentType")
                     updateDevice(deviceNumber) {
                         it.copy(
                             deviceType = equipmentType.toString(),

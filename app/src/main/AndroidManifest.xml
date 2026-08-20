@@ -2,8 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.pm5scanner">
 
-    <!-- Permissions required for ANT+ communication -->
+    <!-- Permissions required for ANT+ communication and background operation -->
     <uses-permission android:name="com.dsi.ant.permission.ANT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -13,6 +17,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PM5Scanner">
         
+        <service
+            android:name=".ANTBackgroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
         <activity
             android:name="MainActivity"
             android:exported="true"

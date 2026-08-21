@@ -78,7 +78,7 @@ class ANTScannerRepository(private val context: Context) {
                     resultCode: RequestAccessResult,
                     initialDeviceState: com.dsi.ant.plugins.antplus.pcc.defines.DeviceState
                 ) {
-                    Log.d("ANTScanner", "requestNewOpenAccess result for ${deviceInfo.antDeviceNumber}: $resultCode, state: $initialDeviceState")
+                    Log.d("ANTScanner", "requestNewOpenAccess result for ${deviceInfo.antDeviceNumber}: $resultCode, initial device state: $initialDeviceState")
                     if (resultCode == RequestAccessResult.SUCCESS && result != null) {
                         connectedPccs[deviceInfo.antDeviceNumber] = result
                         updateDevice(deviceInfo.antDeviceNumber) {
@@ -135,6 +135,17 @@ class ANTScannerRepository(private val context: Context) {
                     heartRateDataSource: AntPlusFitnessEquipmentPcc.HeartRateDataSource
                 ) {
                     val speedDisplay = if (instantaneousSpeed >= 0) "${instantaneousSpeed / 1000.0} m/s" else "0.0 m/s"
+                    Log.d("ANTScanner", """
+                        General FE Data ($deviceNumber):
+                        - Timestamp: $estTimestamp
+                        - Flags: $eventFlags
+                        - Distance: $cumulativeDistance m
+                        - Speed: $speedDisplay ($instantaneousSpeed raw)
+                        - Power: $instantaneousPower W
+                        - HR: $instantaneousHeartRate bpm (Exp: $expHrt)
+                        - HR Source: $heartRateDataSource
+                    """.trimIndent())
+
                     updateDevice(deviceNumber) {
                         it.copy(
                             totalDistance = cumulativeDistance.toLong(),
@@ -154,6 +165,7 @@ class ANTScannerRepository(private val context: Context) {
                     inclinePercentage: java.math.BigDecimal,
                     resistanceLevel: Int
                 ) {
+                    Log.d("ANTScanner", "New General Setting Event.")
                     updateDevice(deviceNumber) {
                         it.copy(resistanceLevel = resistanceLevel)
                     }
@@ -170,6 +182,7 @@ class ANTScannerRepository(private val context: Context) {
                     instantaneousCaloricBurn: java.math.BigDecimal,
                     cumulativeCalories: Long
                 ) {
+                    Log.d("ANTScanner", "New subscribeGeneralMetabolicDataEvent.")
                     updateDevice(deviceNumber) {
                         it.copy(calories = cumulativeCalories)
                     }
@@ -186,6 +199,15 @@ class ANTScannerRepository(private val context: Context) {
                     instantaneousCadence: Int,
                     instantaneousPower: Int
                 ) {
+                    Log.d("ANTScanner", """
+                        Rower Data ($deviceNumber):
+                        - Timestamp: $estTimestamp
+                        - Flags: $eventFlags
+                        - Cumulative Strokes: $cumulativeStrokes
+                        - Instantaneous Cadence: $instantaneousCadence spm
+                        - Instantaneous Power: $instantaneousPower W
+                    """.trimIndent())
+
                     updateDevice(deviceNumber) {
                         it.copy(
                             rowerStrokes = cumulativeStrokes,
@@ -209,6 +231,7 @@ class ANTScannerRepository(private val context: Context) {
                     batteryIdentifier: Int,
                     numberOfBatteries: Int
                 ) {
+                    Log.d("ANTScanner", "New subscribeBatteryStatusEvent.")
                     updateDevice(deviceNumber) {
                         it.copy(batteryLevel = batteryVoltage.toInt() * 10)
                     }
@@ -225,6 +248,7 @@ class ANTScannerRepository(private val context: Context) {
                     softwareVersion: Int,
                     serialNumber: Long
                 ) {
+                    Log.d("ANTScanner", "New subscribeProductInformationEvent.")
                     updateDevice(deviceNumber) {
                         it.copy(serialNumber = serialNumber.toString())
                     }
@@ -241,6 +265,7 @@ class ANTScannerRepository(private val context: Context) {
                     manufacturerID: Int,
                     modelNumber: Int
                 ) {
+                    Log.d("ANTScanner", "New subscribeManufacturerIdentificationEvent.")
                     updateDevice(deviceNumber) {
                         it.copy(modelNumber = modelNumber.toString())
                     }
